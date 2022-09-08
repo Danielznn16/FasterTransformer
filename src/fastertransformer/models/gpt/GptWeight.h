@@ -44,6 +44,7 @@ struct GptWeight {
     std::vector<GptDecoderLayerWeight<T>> decoder_layer_weights;
     const T* position_encoding_table = nullptr;
     const T* pre_decoder_embedding_table = nullptr;
+    const T* block_position_encoding_table = nullptr;
     LayerNormWeight<T> post_decoder_layernorm;
     DenseWeight<T> post_decoder_embedding;
 
@@ -57,7 +58,7 @@ private:
     int num_layer_;
     int max_seq_len_;
     bool is_maintain_buffer = false;
-    T* weights_ptr[5];
+    T* weights_ptr[6];
 };
 
 }  // namespace fastertransformer

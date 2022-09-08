@@ -40,7 +40,7 @@ template<typename T>
 GptWeight<T>::~GptWeight()
 {
     if (is_maintain_buffer == true) {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 6; i++) {
             deviceFree(weights_ptr[i]);
         }
 
@@ -68,6 +68,7 @@ GptWeight<T>::GptWeight(const GptWeight& other):
     cudaD2Dcpy(weights_ptr[2], other.weights_ptr[2], hidden_units_);
     cudaD2Dcpy(weights_ptr[3], other.weights_ptr[3], hidden_units_);
     cudaD2Dcpy(weights_ptr[4], other.weights_ptr[4], hidden_units_ * vocab_size_);
+    cudaD2Dcpy(weights_ptr[5], other.weights_ptr[5], max_seq_len_ * vocab_size_);
     setWeightPtr();
 
     decoder_layer_weights.clear();
@@ -92,6 +93,7 @@ GptWeight<T>& GptWeight<T>::operator=(const GptWeight& other)
     cudaD2Dcpy(weights_ptr[2], other.weights_ptr[2], hidden_units_);
     cudaD2Dcpy(weights_ptr[3], other.weights_ptr[3], hidden_units_);
     cudaD2Dcpy(weights_ptr[4], other.weights_ptr[4], hidden_units_ * vocab_size_);
+    cudaD2Dcpy(weights_ptr[5], other.weights_ptr[5], max_seq_len_ * vocab_size_);
     setWeightPtr();
 
     decoder_layer_weights.clear();
@@ -109,6 +111,7 @@ void GptWeight<T>::setWeightPtr()
     post_decoder_layernorm.beta = weights_ptr[2];
     post_decoder_layernorm.gamma = weights_ptr[3];
     post_decoder_embedding.kernel = weights_ptr[4];
+    block_position_encoding_table = weights_ptr[5];
     post_decoder_embedding.bias = nullptr;
 }
 
@@ -120,6 +123,7 @@ void GptWeight<T>::mallocWeights()
     deviceMalloc(&weights_ptr[2], hidden_units_);
     deviceMalloc(&weights_ptr[3], hidden_units_);
     deviceMalloc(&weights_ptr[4], hidden_units_ * vocab_size_);
+    deviceMalloc(&weights_ptr[5], max_seq_len_ * vocab_size_);
     is_maintain_buffer = true;
 }
 
@@ -133,6 +137,7 @@ void GptWeight<T>::loadModel(std::string dir_path)
     loadWeightFromBin<T>(weights_ptr[2], {hidden_units_}, dir_path + "/model.final_layernorm.bias.bin");
     loadWeightFromBin<T>(weights_ptr[3], {hidden_units_}, dir_path + "/model.final_layernorm.weight.bin");
     loadWeightFromBin<T>(weights_ptr[4], {vocab_size_ * hidden_units_}, dir_path + "/model.wte.bin");
+    loadWeightFromBin<T>(weights_ptr[5], {max_seq_len_ * hidden_units_}, dir_path + "/model.bpe.bin"); // Block Position Encoding
 
     for (int l = 0; l < num_layer_; l++) {
         decoder_layer_weights[l].loadModel(dir_path + "/model.layers." + std::to_string(l));
