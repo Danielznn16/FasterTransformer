@@ -50,6 +50,7 @@ struct ParallelGptWeight {
     const T* pre_decoder_embedding_table = nullptr;
     LayerNormWeight<T> post_decoder_layernorm;
     DenseWeight<T> post_decoder_embedding;
+    const T* block_position_encoding_table = nullptr;
 
 private:
     void setWeightPtr();
@@ -67,7 +68,7 @@ private:
     int layer_para_rank_;
     int int8_mode_ = 0;
     bool is_maintain_buffer = false;
-    T* weights_ptr[5];
+    T* weights_ptr[6];
 };
 
 }  // namespace fastertransformer
