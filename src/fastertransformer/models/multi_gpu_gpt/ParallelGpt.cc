@@ -735,6 +735,7 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
                                                      gpt_weights->position_encoding_table,
                                                      gpt_weights->block_position_encoding_table,
                                                      output_ids_buf_ + id_offset,
+                                                     output_ids_buf_ + id_offset, // TODO Xiaokang pass block position ids
                                                      tiled_input_lengths_buf_ + id_offset,
                                                      local_batch_size * beam_width,
                                                      hidden_units_,
