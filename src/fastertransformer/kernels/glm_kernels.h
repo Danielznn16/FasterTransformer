@@ -94,7 +94,7 @@ void invokeTileGlmInputs(int* tiled_input_ids,
                          const int max_input_length,
                          cudaStream_t stream);
 
-bool hasDiffRuntimeArgs(const std::unordered_map<std::string, Tensor>* input_tensors);
+// bool hasDiffRuntimeArgsGlm(const std::unordered_map<std::string, Tensor>* input_tensors);
 
 template<typename T>
 void handleOptArg(const std::unordered_map<std::string, Tensor>* input_tensors,
