@@ -85,7 +85,7 @@ void invokeLookupHiddenStateOfLastToken(T* from_tensor,
                                         const int hidden_units,
                                         cudaStream_t stream);
 
-void invokeTileGptInputs(int* tiled_input_ids,
+void invokeTileGlmInputs(int* tiled_input_ids,
                          int* tiled_input_lengths,
                          const int* input_ids,
                          const int* input_lengths,

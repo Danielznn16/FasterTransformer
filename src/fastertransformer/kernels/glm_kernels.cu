@@ -483,7 +483,7 @@ __global__ void tileGptInputs(int* tiled_input_ids,
     }
 }
 
-void invokeTileGptInputs(int* tiled_input_ids,
+void invokeTileGlmInputs(int* tiled_input_ids,
                          int* tiled_input_lengths,
                          const int* input_ids,
                          const int* input_lengths,

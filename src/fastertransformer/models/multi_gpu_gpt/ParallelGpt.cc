@@ -571,7 +571,7 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
 
     // handle first step
     if (input_tensors->count("prefix_soft_prompt_embedding") || max_input_length >= 1) {
-        invokeTileGptInputs(tiled_input_ids_buf_,
+        invokeTileGlmInputs(tiled_input_ids_buf_,
                             tiled_input_lengths_buf_,
                             (int*)input_tensors->at("input_ids").data,
                             (const int*)(input_tensors->at("input_lengths").data),
@@ -698,7 +698,7 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
                                  max_input_length - 1,
                                  stream_);
         sync_check_cuda_error();
-        invokeTileGptInputs(tiled_input_ids_buf_,
+        invokeTileGlmInputs(tiled_input_ids_buf_,
                             tiled_input_lengths_buf_,
                             (int*)input_tensors->at("input_ids").data,
                             (const int*)(input_tensors->at("input_lengths").data),
