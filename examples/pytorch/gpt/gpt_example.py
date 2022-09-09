@@ -130,6 +130,7 @@ def main():
             batch_size = min(len(contexts), max_batch_size)
         contexts = contexts[:batch_size]
         start_ids = [torch.IntTensor(enc.encode(c)) for c in contexts]
+        print(start_ids)
     else:  # unconditional case
         batch_size = max_batch_size
         contexts = ['<|endoftext|>'] * batch_size
