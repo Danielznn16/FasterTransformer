@@ -170,6 +170,7 @@ template void invokeInputIdsEmbeddingLookupPosEncoding(__nv_bfloat16* from_tenso
                                                        const __nv_bfloat16* pos_table,
                                                        const __nv_bfloat16* block_pos_table,
                                                        const int* input_ids,
+                                                       const int* input_position_ids,
                                                        const int start_step,
                                                        const int length,
                                                        const int max_length,
