@@ -733,6 +733,7 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
                     invokeEmbeddingLookupPosEncoding(decoder_input_buf_ + hidden_units_offset,
                                                      gpt_weights->pre_decoder_embedding_table,
                                                      gpt_weights->position_encoding_table,
+                                                     gpt_weights->block_position_encoding_table,
                                                      output_ids_buf_ + id_offset,
                                                      tiled_input_lengths_buf_ + id_offset,
                                                      local_batch_size * beam_width,
