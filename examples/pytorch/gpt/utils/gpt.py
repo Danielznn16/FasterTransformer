@@ -73,6 +73,7 @@ class GPTWeights(object):
         self.w.append(torch.zeros(max_seq_len, global_hidden_units))   # position_encoding_table
         self.w.append(torch.zeros(vocab_size, global_hidden_units))   # embedding_table
         self.w.append(torch.zeros(vocab_size, global_hidden_units))   # embedding_kernel
+        self.w.append(torch.zeros(max_seq_len, global_hidden_units))   # block_position_encoding_table
 
         # Initialization
         self._map(lambda w: torch.nn.init.normal_(w, mean=0., std=1.))
@@ -165,7 +166,7 @@ class GPTWeights(object):
         w.append(wpe)
         w.append(torch.from_numpy(np.fromfile(ckpt_path + "/model.wte.bin", dtype=np.single)))
         w.append(torch.from_numpy(np.fromfile(ckpt_path + "/model.wte.bin", dtype=np.single)))
-
+        w.append(torch.from_numpy(np.fromfile(ckpt_path + "/model.bte.bin", dtype=np.single))).reshape(-1, self.global_hidden_units)
         # Reshape
         try:
             for i in range(len(w)):

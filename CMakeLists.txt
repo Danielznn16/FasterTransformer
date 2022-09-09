@@ -313,6 +313,7 @@ add_library(transformer-static STATIC
   $<TARGET_OBJECTS:decoder_masked_multihead_attention>
   $<TARGET_OBJECTS:decoding_kernels>
   $<TARGET_OBJECTS:gpt_kernels>
+  $<TARGET_OBJECTS:glm_kernels>
   $<TARGET_OBJECTS:layernorm_int8_kernels>
   $<TARGET_OBJECTS:layernorm_kernels>
   $<TARGET_OBJECTS:layout_transformer_int8_kernels>
@@ -393,6 +394,7 @@ add_library(transformer-shared SHARED
   $<TARGET_OBJECTS:decoder_masked_multihead_attention>
   $<TARGET_OBJECTS:decoding_kernels>
   $<TARGET_OBJECTS:gpt_kernels>
+  $<TARGET_OBJECTS:glm_kernels>
   $<TARGET_OBJECTS:layernorm_int8_kernels>
   $<TARGET_OBJECTS:layernorm_kernels>
   $<TARGET_OBJECTS:layout_transformer_int8_kernels>
