@@ -527,7 +527,7 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
                    max_input_length + max_prefix_soft_prompt_length,
                    is_return_context_cum_log_probs);
     sync_check_cuda_error();
-    bool has_diff_runtime_args = hasDiffRuntimeArgsGlm(input_tensors);
+    bool has_diff_runtime_args = hasDiffRuntimeArgs(input_tensors);
 
     int* sequence_lengths = (int*)(output_tensors->at("sequence_length").data);
     const DataType data_type = getTensorType<T>();
