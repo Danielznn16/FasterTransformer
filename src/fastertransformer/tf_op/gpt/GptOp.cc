@@ -236,7 +236,7 @@ public:
         this->get_tensor(context, 2 + num_layer_ * 12 + 2, &gpt_weidghts.position_encoding_table);
         this->get_tensor(context, 2 + num_layer_ * 12 + 3, &gpt_weidghts.pre_decoder_embedding_table);
         this->get_tensor(context, 2 + num_layer_ * 12 + 4, &gpt_weidghts.post_decoder_embedding.kernel);
-        this->get_tensor(context, 2 + num_layer_ * 12 + 5, &gpt_weidghts.block_position_encoding_table);
+        // this->get_tensor(context, 2 + num_layer_ * 12 + 5, &gpt_weidghts.block_position_encoding_table);
         int total_output_length = request_output_length_ + (int)max_input_length;
 
         tf::Tensor* output_id_tensor = nullptr;
