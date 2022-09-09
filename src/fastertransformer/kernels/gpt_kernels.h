@@ -93,65 +93,7 @@ void invokeTileGptInputs(int* tiled_input_ids,
                          const int max_input_length,
                          cudaStream_t stream);
 
-#ifndef HAS_DIFF_RUNTIME_ARGS
-#define HAS_DIFF_RUNTIME_ARGS
-
-bool hasDiffRuntimeArgs(const std::unordered_map<std::string, Tensor>* input_tensors)
-{
-    //      runtime_top_k [1] or [batch_size] on cpu, optional.
-    //      runtime_top_p [1] or [batch_size] on cpu, optional
-    //      beam_search_diversity_rate [1] or [batch_size] on cpu, optional
-    //      temperature [1] or [batch_size] on cpu, optional
-    //      len_penalty [1] or [batch_size] on cpu, optional
-    //      repetition_penalty [1] or [batch_size] on cpu, optional
-    //      random_seed [1] or [batch_size] on cpu, optional
-
-    std::vector<std::string> check_list = {"runtime_top_k",
-                                           "runtime_top_p",
-                                           "beam_search_diversity_rate",
-                                           "temperature",
-                                           "len_penalty",
-                                           "repetition_penalty",
-                                           "random_seed"};
-
-    for (int i = 0; i < (int)check_list.size(); i++) {
-        if (input_tensors->count(check_list[i])) {
-            auto tensor = input_tensors->at(check_list[i]);
-            FT_CHECK(tensor.shape.size() == 1);
-            for (int j = 1; j < (int)tensor.shape[0]; j++) {
-                const void* data = tensor.data;
-                switch (tensor.type) {
-                    case TYPE_FP32:
-                        if (((const float*)data)[0] != ((const float*)data)[j]) {
-                            return true;
-                        }
-                        break;
-                    case TYPE_INT32:
-                        if (((const int*)data)[0] != ((const int*)data)[j]) {
-                            return true;
-                        }
-                        break;
-                    case TYPE_UINT32:
-                        if (((const uint*)data)[0] != ((const uint*)data)[j]) {
-                            return true;
-                        }
-                        break;
-                    case TYPE_UINT64:
-                        if (((const unsigned long long int*)data)[0] != ((const unsigned long long int*)data)[j]) {
-                            return true;
-                        }
-                        break;
-                    default:
-                        FT_CHECK_WITH_INFO(false, check_list[i] + ": " + tensor.toString() + " is invalid.");
-                        break;
-                }
-            }
-        }
-    }
-    return false;
-}
-
-#endif
+bool hasDiffRuntimeArgs(const std::unordered_map<std::string, Tensor>* input_tensors);
 
 template<typename T>
 void handleOptArg(const std::unordered_map<std::string, Tensor>* input_tensors,
