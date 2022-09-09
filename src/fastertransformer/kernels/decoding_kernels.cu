@@ -198,6 +198,52 @@ void invokeEmbeddingLookupPosEncoding(T* from_tensor,
                                                        scale);
     }
 }
+#TODO Xiaokang Implement BPE
+template<typename T>
+void invokeEmbeddingLookupPosEncoding(T* from_tensor,
+                                      const T* embedding_table,
+                                      const T* position_encoding,
+                                      const T* block_position_encoding,
+                                      const int* all_ids,
+                                      const int* input_lengths,
+                                      const int local_batch_size,
+                                      const int hidden_units,
+                                      const T scale,
+                                      const int step,
+                                      const int max_input_length,
+                                      const int batch_size,
+                                      const int ite,
+                                      cudaStream_t stream)
+{
+    dim3 grid(min(local_batch_size, 65536));
+    dim3 block(min(hidden_units, 1024));
+    if (position_encoding != nullptr) {
+        embeddingLookupPosEncoding<T><<<grid, block, 0, stream>>>(from_tensor,
+                                                                  embedding_table,
+                                                                  position_encoding,
+                                                                  all_ids,
+                                                                  input_lengths,
+                                                                  local_batch_size,
+                                                                  hidden_units,
+                                                                  step,
+                                                                  max_input_length,
+                                                                  batch_size,
+                                                                  ite,
+                                                                  scale);
+    }
+    else {
+        embeddingLookup<T><<<grid, block, 0, stream>>>(from_tensor,
+                                                       embedding_table,
+                                                       all_ids,
+                                                       local_batch_size,
+                                                       hidden_units,
+                                                       step,
+                                                       max_input_length,
+                                                       batch_size,
+                                                       ite,
+                                                       scale);
+    }
+}
 
 template void invokeEmbeddingLookupPosEncoding(float* from_tensor,
                                                const float* embedding_table,
@@ -213,9 +259,40 @@ template void invokeEmbeddingLookupPosEncoding(float* from_tensor,
                                                const int ite,
                                                cudaStream_t stream);
 
+template void invokeEmbeddingLookupPosEncoding(float* from_tensor,
+                                               const float* embedding_table,
+                                               const float* position_encoding,
+                                               const float* block_position_encoding,
+                                               const int* all_ids,
+                                               const int* input_lengths,
+                                               const int local_batch_size,
+                                               const int hidden_units,
+                                               const float scale,
+                                               const int step,
+                                               const int max_input_length,
+                                               const int batch_size,
+                                               const int ite,
+                                               cudaStream_t stream);
+
+
 template void invokeEmbeddingLookupPosEncoding(half* from_tensor,
                                                const half* embedding_table,
                                                const half* position_encoding,
+                                               const int* all_ids,
+                                               const int* input_lengths,
+                                               const int local_batch_size,
+                                               const int hidden_units,
+                                               const half scale,
+                                               const int step,
+                                               const int max_input_length,
+                                               const int batch_size,
+                                               const int ite,
+                                               cudaStream_t stream);
+
+template void invokeEmbeddingLookupPosEncoding(half* from_tensor,
+                                               const half* embedding_table,
+                                               const half* position_encoding,
+                                               const half* block_position_encoding,
                                                const int* all_ids,
                                                const int* input_lengths,
                                                const int local_batch_size,
@@ -231,6 +308,21 @@ template void invokeEmbeddingLookupPosEncoding(half* from_tensor,
 template void invokeEmbeddingLookupPosEncoding(__nv_bfloat16* from_tensor,
                                                const __nv_bfloat16* embedding_table,
                                                const __nv_bfloat16* position_encoding,
+                                               const int* all_ids,
+                                               const int* input_lengths,
+                                               const int local_batch_size,
+                                               const int hidden_units,
+                                               const __nv_bfloat16 scale,
+                                               const int step,
+                                               const int max_input_length,
+                                               const int batch_size,
+                                               const int ite,
+                                               cudaStream_t stream);
+
+template void invokeEmbeddingLookupPosEncoding(__nv_bfloat16* from_tensor,
+                                               const __nv_bfloat16* embedding_table,
+                                               const __nv_bfloat16* position_encoding,
+                                               const __nv_bfloat16* block_position_encoding,
                                                const int* all_ids,
                                                const int* input_lengths,
                                                const int local_batch_size,
