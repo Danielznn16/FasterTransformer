@@ -198,7 +198,7 @@ void invokeEmbeddingLookupPosEncoding(T* from_tensor,
                                                        scale);
     }
 }
-#TODO Xiaokang Implement BPE
+// TODO Xiaokang Implement BPE
 template<typename T>
 void invokeEmbeddingLookupPosEncoding(T* from_tensor,
                                       const T* embedding_table,
