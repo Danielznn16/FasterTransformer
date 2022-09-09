@@ -13,8 +13,12 @@ import math
 import random
 import torch
 
-from SwissArmyTransformer.training.utils import print_rank_0
-
+def print_rank_0(message):
+    if torch.distributed.is_initialized():
+        if torch.distributed.get_rank() == 0:
+            print(message, flush=True)
+    else:
+        print(message, flush=True)
 
 def get_tokenizer(args=None, *, tokenizer_type=None, outer_tokenizer=None):
     '''
