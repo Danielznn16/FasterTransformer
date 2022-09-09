@@ -166,7 +166,7 @@ class GPTWeights(object):
         w.append(wpe)
         w.append(torch.from_numpy(np.fromfile(ckpt_path + "/model.wte.bin", dtype=np.single)))
         w.append(torch.from_numpy(np.fromfile(ckpt_path + "/model.wte.bin", dtype=np.single)))
-        w.append(torch.from_numpy(np.fromfile(ckpt_path + "/model.bpe.bin", dtype=np.single))).reshape(-1, self.global_hidden_units)
+        w.append(torch.from_numpy(np.fromfile(ckpt_path + "/model.bpe.bin", dtype=np.single)).reshape(-1, self.global_hidden_units))
         # Reshape
         try:
             for i in range(len(w)):
