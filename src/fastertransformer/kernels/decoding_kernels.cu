@@ -128,6 +128,41 @@ __global__ void embeddingLookupPosEncoding(T* from_tensor,
     }
 }
 
+template<typename T>
+__global__ void embeddingLookupPosAndBlockPosEncoding(T* from_tensor,
+                                                      const T* embedding_table,
+                                                      const T* position_encoding,
+                                                      const T* block_position_encoding,
+                                                      const int* all_ids,
+                                                      const int* all_block_postion_ids,
+                                                      const int* input_lengths,
+                                                      const int local_batch_size,
+                                                      const int hidden_units,
+                                                      const int step,
+                                                      const int max_input_length,
+                                                      const int batch_size,
+                                                      const int ite,
+                                                      const T scale)
+{
+    // 1. lookup from embedding table
+    // 2. multiply scale
+    // 3. add the position encoding
+    const int id_offset = step * batch_size + ite * local_batch_size;
+    for (int index = blockIdx.x * blockDim.x + threadIdx.x; index < local_batch_size * hidden_units;
+         index += blockDim.x * gridDim.x) {
+        const int row_index = index / hidden_units;
+        const int col_index = index % hidden_units;
+        const int step_offset = input_lengths == nullptr ?
+                                    step * hidden_units :
+                                    (step - max_input_length + input_lengths[row_index]) * hidden_units;
+        T val = embedding_table[all_ids[id_offset + row_index] * hidden_units + col_index] * scale;
+        val = val + block_position_encoding[all_block_postion_ids[id_offset + row_index] * hidden_units + col_index];
+        val = val + position_encoding[step_offset + col_index];
+
+        from_tensor[index] = val;
+    }
+}
+
 // No aboluste position embedding
 template<typename T>
 __global__ void embeddingLookup(T* from_tensor,
@@ -205,6 +240,7 @@ void invokeEmbeddingLookupPosEncoding(T* from_tensor,
                                       const T* position_encoding,
                                       const T* block_position_encoding,
                                       const int* all_ids,
+                                      const int* all_block_postion_ids,
                                       const int* input_lengths,
                                       const int local_batch_size,
                                       const int hidden_units,
@@ -217,19 +253,22 @@ void invokeEmbeddingLookupPosEncoding(T* from_tensor,
 {
     dim3 grid(min(local_batch_size, 65536));
     dim3 block(min(hidden_units, 1024));
-    if (position_encoding != nullptr) {
-        embeddingLookupPosEncoding<T><<<grid, block, 0, stream>>>(from_tensor,
-                                                                  embedding_table,
-                                                                  position_encoding,
-                                                                  all_ids,
-                                                                  input_lengths,
-                                                                  local_batch_size,
-                                                                  hidden_units,
-                                                                  step,
-                                                                  max_input_length,
-                                                                  batch_size,
-                                                                  ite,
-                                                                  scale);
+    if (position_encoding != nullptr && block_position_encoding != nullptr) {
+        embeddingLookupPosAndBlockPosEncoding<T><<<grid, block, 0, stream>>>(from_tensor,
+                                                                             embedding_table,
+                                                                             position_encoding,
+                                                                             block_position_encoding,
+                                                                             all_ids,
+                                                                             all_block_postion_ids,
+                                                                             input_lengths,
+                                                                             local_batch_size,
+                                                                             hidden_units,
+                                                                             step,
+                                                                             max_input_length,
+                                                                             batch_size,
+                                                                             ite,
+                                                                             scale);
+        // add function for blocker pos embedding
     }
     else {
         embeddingLookup<T><<<grid, block, 0, stream>>>(from_tensor,

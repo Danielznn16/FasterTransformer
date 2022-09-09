@@ -66,6 +66,23 @@ void invokeEmbeddingLookupPosEncoding(T* from_tensor,
                                       cudaStream_t stream);
 
 template<typename T>
+void invokeEmbeddingLookupPosEncoding(T* from_tensor,
+                                      const T* embedding_table,
+                                      const T* position_encoding,
+                                      const T* block_position_encoding,
+                                      const int* all_ids,
+                                      const int* all_block_postion_ids,
+                                      const int* input_lengths,
+                                      const int local_batch_size,
+                                      const int hidden_units,
+                                      const T scale,
+                                      const int step,
+                                      const int max_input_length,
+                                      const int batch_size,
+                                      const int ite,
+                                      cudaStream_t stream);
+
+template<typename T>
 void invokePaddingEmbedding(T* padded_embedding_kernel,
                             T* padded_embedding_bias,
                             const T* embedding_kernel,
