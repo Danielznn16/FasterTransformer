@@ -608,6 +608,7 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
                                                      output_ids_buf_,
                                                      gpt_weights->pre_decoder_embedding_table,
                                                      gpt_weights->position_encoding_table,
+                                                     gpt_weights->block_position_encoding_table,
                                                      tiled_input_ids_buf_,
                                                      1,
                                                      max_input_length,
