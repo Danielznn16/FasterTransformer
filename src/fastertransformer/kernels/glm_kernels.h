@@ -95,7 +95,7 @@ void invokeTileGlmInputs(int* tiled_input_ids,
                          cudaStream_t stream);
 
 
-bool hasDiffRuntimeArgs(const std::unordered_map<std::string, Tensor>* input_tensors);
+bool hasDiffRuntimeArgsGlm(const std::unordered_map<std::string, Tensor>* input_tensors);
 
 
 

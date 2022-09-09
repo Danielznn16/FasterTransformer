@@ -493,8 +493,7 @@ void invokeTileGptInputs(int* tiled_input_ids,
     tileGptInputs<<<grid, block, 0, stream>>>(
         tiled_input_ids, tiled_input_lengths, input_ids, input_lengths, max_input_length);
 }
-#ifndef HAS_DIFF_RUNTIME_ARGS
-#define HAS_DIFF_RUNTIME_ARGS
+
 bool hasDiffRuntimeArgs(const std::unordered_map<std::string, Tensor>* input_tensors)
 {
     //      runtime_top_k [1] or [batch_size] on cpu, optional.
@@ -549,6 +548,5 @@ bool hasDiffRuntimeArgs(const std::unordered_map<std::string, Tensor>* input_ten
     }
     return false;
 }
-#endif
 
 }  // namespace fastertransformer
