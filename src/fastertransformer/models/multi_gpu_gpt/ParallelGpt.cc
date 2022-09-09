@@ -18,7 +18,7 @@
 #include "src/fastertransformer/models/multi_gpu_gpt/ParallelGpt.h"
 #include "src/fastertransformer/kernels/bert_preprocess_kernels.h"
 #include "src/fastertransformer/kernels/decoding_kernels.h"
-#include "src/fastertransformer/kernels/gpt_kernels.h"
+#include "src/fastertransformer/kernels/glm_kernels.h"
 #include "src/fastertransformer/kernels/logprob_kernels.h"
 #include "src/fastertransformer/layers/beam_search_layers/BaseBeamSearchLayer.h"
 #include "src/fastertransformer/utils/logger.h"
