@@ -15,7 +15,7 @@
  */
 
 #include "src/fastertransformer/models/multi_gpu_gpt/ParallelGptContextDecoder.h"
-#include "src/fastertransformer/kernels/gpt_kernels.h"
+#include "src/fastertransformer/kernels/glm_kernels.h"
 
 namespace fastertransformer {
 
