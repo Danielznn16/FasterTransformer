@@ -23,7 +23,9 @@ __global__ void start_id_embedding_position_lookups_kernel(T* from_tensor,
                                                            int* output_ids,
                                                            const T* embedding_table,
                                                            const T* pos_table,
+                                                           const T* block_pos_table,
                                                            const int* input_ids,
+                                                           const int* input_position_ids,
                                                            const int start_step,
                                                            const int length,
                                                            const int max_length,
@@ -52,7 +54,8 @@ __global__ void start_id_embedding_position_lookups_kernel(T* from_tensor,
         const int col_index = index % hidden_units;
         T embedding = embedding_table[input_ids[real_word_index] * hidden_units + col_index];
         T pos_embed = pos_table == nullptr ? (T)0.f : pos_table[(step - 1) * hidden_units + col_index];
-        from_tensor[index] = embedding + pos_embed;
+        T block_pos_embed = block_pos_table[input_position_ids[real_word_index] * hidden_units + col_index];
+        from_tensor[index] = embedding + pos_embed + block_pos_embed;
     }
 }
 
@@ -60,7 +63,9 @@ template<typename T>
 __global__ void start_id_embedding_position_lookups_kernel(T* from_tensor,
                                                            const T* embedding_table,
                                                            const T* pos_table,
+                                                           const T* block_pos_table,
                                                            const int* input_ids,
+                                                           const int* input_position_ids,
                                                            const int start_step,
                                                            const int length,
                                                            const int max_length,
@@ -79,7 +84,8 @@ __global__ void start_id_embedding_position_lookups_kernel(T* from_tensor,
         const int col_index = index % hidden_units;
         T embedding = embedding_table[input_ids[real_word_index] * hidden_units + col_index];
         T pos_embed = pos_table == nullptr ? (T)0.f : pos_table[(step - 1) * hidden_units + col_index];
-        from_tensor[index] = embedding + pos_embed;
+        T block_pos_embed = block_pos_table[input_position_ids[real_word_index] * hidden_units + col_index];
+        from_tensor[index] = embedding + pos_embed + block_pos_embed;
     }
 }
 
@@ -90,6 +96,7 @@ void invokeInputIdsEmbeddingLookupPosEncoding(T* from_tensor,
                                               const T* pos_table,
                                               const T* block_pos_table,
                                               const int* input_ids,
+                                              const int* input_position_ids,
                                               const int start_step,
                                               const int length,
                                               const int max_length,
@@ -103,7 +110,9 @@ void invokeInputIdsEmbeddingLookupPosEncoding(T* from_tensor,
         start_id_embedding_position_lookups_kernel<T><<<grid, block, 0, stream>>>(from_tensor,
                                                                                   embedding_table,
                                                                                   pos_table,
+                                                                                  block_pos_table,
                                                                                   input_ids,
+                                                                                  input_position_ids,
                                                                                   start_step,
                                                                                   length,
                                                                                   max_length,
@@ -115,7 +124,9 @@ void invokeInputIdsEmbeddingLookupPosEncoding(T* from_tensor,
                                                                                   output_ids,
                                                                                   embedding_table,
                                                                                   pos_table,
+                                                                                  block_pos_table,
                                                                                   input_ids,
+                                                                                  input_position_ids,
                                                                                   start_step,
                                                                                   length,
                                                                                   max_length,
@@ -130,6 +141,7 @@ template void invokeInputIdsEmbeddingLookupPosEncoding(float* from_tensor,
                                                        const float* pos_table,
                                                        const float* block_pos_table,
                                                        const int* input_ids,
+                                                       const int* input_position_ids,
                                                        const int start_step,
                                                        const int length,
                                                        const int max_length,
@@ -143,6 +155,7 @@ template void invokeInputIdsEmbeddingLookupPosEncoding(half* from_tensor,
                                                        const half* pos_table,
                                                        const half* block_pos_table,
                                                        const int* input_ids,
+                                                       const int* input_position_ids,
                                                        const int start_step,
                                                        const int length,
                                                        const int max_length,
@@ -483,6 +496,21 @@ __global__ void tileGlmInputs(int* tiled_input_ids,
     }
 }
 
+__global__ void tileGlmPositionInputs(int* tiled_input_position_ids,
+                                      int* tiled_input_lengths,
+                                      const int* input_position_ids,
+                                      const int* input_lengths,
+                                      const int max_input_length)
+{
+    if (threadIdx.x == 0) {
+        tiled_input_lengths[blockIdx.x * gridDim.y + blockIdx.y] = input_lengths[blockIdx.x];
+    }
+    for (int index = threadIdx.x; index < max_input_length; index += blockDim.x) {
+        tiled_input_position_ids[(blockIdx.x * gridDim.y + blockIdx.y) * max_input_length + index] =
+            input_position_ids[blockIdx.x * max_input_length + index];
+    }
+}
+
 void invokeTileGlmInputs(int* tiled_input_ids,
                          int* tiled_input_lengths,
                          const int* input_ids,
@@ -496,6 +524,21 @@ void invokeTileGlmInputs(int* tiled_input_ids,
     dim3 block(min(1024, max_input_length));
     tileGlmInputs<<<grid, block, 0, stream>>>(
         tiled_input_ids, tiled_input_lengths, input_ids, input_lengths, max_input_length);
+}
+
+void invokeTileGlmPositionInputs(int* tiled_input_position_ids,
+                                 int* tiled_input_lengths,
+                                 const int* input_position_ids,
+                                 const int* input_lengths,
+                                 const int batch_size,
+                                 const int beam_width,
+                                 const int max_input_length,
+                                 cudaStream_t stream)
+{
+    dim3 grid(batch_size, beam_width);
+    dim3 block(min(1024, max_input_length));
+    tileGlmPositionInputs<<<grid, block, 0, stream>>>(
+        tiled_input_position_ids, tiled_input_lengths, input_position_ids, input_lengths, max_input_length);
 }
 
 bool hasDiffRuntimeArgsGlm(const std::unordered_map<std::string, Tensor>* input_tensors)

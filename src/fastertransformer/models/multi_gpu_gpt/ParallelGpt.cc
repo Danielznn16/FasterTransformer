@@ -119,6 +119,8 @@ void ParallelGpt<T>::allocateBuffer(size_t batch_size,
 
     tiled_input_ids_buf_ =
         (int*)(allocator_->reMalloc(tiled_input_ids_buf_, sizeof(int) * batchxbeam * max_input_len, true));
+    tiled_input_position_ids_buf_ =
+        (int*)(allocator_->reMalloc(tiled_input_position_ids_buf_, sizeof(int) * batchxbeam * max_input_len, true));
     tiled_input_lengths_buf_ = (int*)(allocator_->reMalloc(tiled_input_lengths_buf_, sizeof(int) * batchxbeam, true));
 
     start_ids_buf_ = (int*)(allocator_->reMalloc(start_ids_buf_, sizeof(int) * batch_size, false));
@@ -174,6 +176,7 @@ void ParallelGpt<T>::freeBuffer()
         }
 
         allocator_->free(tiled_input_ids_buf_);
+        allocator_->free(tiled_input_lengths_buf_);
         allocator_->free(tiled_input_lengths_buf_);
 
         allocator_->free(transposed_output_ids_buf_);
@@ -456,6 +459,7 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
 {
     // input_tensors:
     //      input_ids [batch_size, max_input_length]
+    //      input_position_ids [batch_size, max_input_length] (assume it is given in advance)
     //      input_lengths [batch_size]
     //      max_output_seq_len [1] on cpu
     //      stop_words_list [batch_size, 2, stop_words_length], optional
@@ -481,6 +485,9 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
     //      cum_log_probs [batch_size, beam_width], must be float*. optional.
     //          The cumulative log probability of generated sequences. It may lead to additional computing cost.
 
+    // TODO : Add new buffer for input_position_ids (same as input_ids)
+    // 
+
     // Step is from max_input_length ~ max_output_seq_len,
     // When step = k,  we put output ids and caches at step k, and the sequence_length would be k - 1 before
     // complete this step.
@@ -490,6 +497,7 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
     FT_CHECK_WITH_INFO(input_tensors->size() >= 3, "input_tensors->size() >= 3");
     FT_CHECK_WITH_INFO(output_tensors->size() >= 3, "output_tensors->size() >= 3");
     FT_CHECK(input_tensors->at("input_ids").shape.size() == 2);
+    FT_CHECK(input_tensors->at("input_position_ids").shape.size() == 2);
     FT_CHECK(input_tensors->at("input_lengths").shape.size() == 1);
     FT_CHECK(input_tensors->at("max_output_seq_len").shape.size() == 1);
     FT_CHECK(output_tensors->at("output_ids").shape.size() == 3);
@@ -579,6 +587,14 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
                             beam_width,
                             max_input_length,
                             stream_);
+        invokeTileGlmPositionInputs(tiled_input_position_ids_buf_,
+                                    tiled_input_lengths_buf_,
+                                    (int*)input_tensors->at("input_position_ids").data,
+                                    (const int*)(input_tensors->at("input_lengths").data),
+                                    batch_size,
+                                    beam_width,
+                                    max_input_length,
+                                    stream_);
         sync_check_cuda_error();
 
         if (input_tensors->count("prefix_soft_prompt_embedding")) {
@@ -610,6 +626,7 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
                                                      gpt_weights->position_encoding_table,
                                                      gpt_weights->block_position_encoding_table,
                                                      tiled_input_ids_buf_,
+                                                     tiled_input_position_ids_buf_,
                                                      1,
                                                      max_input_length,
                                                      max_input_length,
@@ -706,6 +723,14 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
                             beam_width,
                             max_input_length,
                             stream_);
+        invokeTileGlmPositionInputs(tiled_input_position_ids_buf_,
+                                    tiled_input_lengths_buf_,
+                                    (int*)input_tensors->at("input_position_ids").data,
+                                    (const int*)(input_tensors->at("input_lengths").data),
+                                    batch_size,
+                                    beam_width,
+                                    max_input_length,
+                                    stream_);
         sync_check_cuda_error();
 
         cudaMemcpyAsync(output_ids_buf_,
@@ -735,7 +760,7 @@ void ParallelGpt<T>::forward(std::unordered_map<std::string, Tensor>* output_ten
                                                      gpt_weights->position_encoding_table,
                                                      gpt_weights->block_position_encoding_table,
                                                      output_ids_buf_ + id_offset,
-                                                     output_ids_buf_ + id_offset, // TODO Xiaokang pass block position ids
+                                                     tiled_input_position_ids_buf_ + id_offset, // Finished Xiaokang pass block position ids
                                                      tiled_input_lengths_buf_ + id_offset,
                                                      local_batch_size * beam_width,
                                                      hidden_units_,

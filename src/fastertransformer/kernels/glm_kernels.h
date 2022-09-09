@@ -31,6 +31,7 @@ void invokeInputIdsEmbeddingLookupPosEncoding(T* from_tensor,
                                               const T* pos_table,
                                               const T* block_pos_table,
                                               const int* input_ids,
+                                              const int* input_position_ids,
                                               const int start_step,
                                               const int length,
                                               const int max_length,
@@ -94,6 +95,14 @@ void invokeTileGlmInputs(int* tiled_input_ids,
                          const int max_input_length,
                          cudaStream_t stream);
 
+void invokeTileGlmPositionInputs(int* tiled_input_position_ids,
+                                 int* tiled_input_lengths,
+                                 const int* input_position_ids,
+                                 const int* input_lengths,
+                                 const int batch_size,
+                                 const int beam_width,
+                                 const int max_input_length,
+                                 cudaStream_t stream);
 
 bool hasDiffRuntimeArgsGlm(const std::unordered_map<std::string, Tensor>* input_tensors);
 
