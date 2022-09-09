@@ -468,7 +468,7 @@ template void invokeLookupHiddenStateOfLastToken(__nv_bfloat16* from_tensor,
                                                  cudaStream_t stream);
 #endif
 
-__global__ void tileGptInputs(int* tiled_input_ids,
+__global__ void tileGlmInputs(int* tiled_input_ids,
                               int* tiled_input_lengths,
                               const int* input_ids,
                               const int* input_lengths,
@@ -494,7 +494,7 @@ void invokeTileGlmInputs(int* tiled_input_ids,
 {
     dim3 grid(batch_size, beam_width);
     dim3 block(min(1024, max_input_length));
-    tileGptInputs<<<grid, block, 0, stream>>>(
+    tileGlmInputs<<<grid, block, 0, stream>>>(
         tiled_input_ids, tiled_input_lengths, input_ids, input_lengths, max_input_length);
 }
 
