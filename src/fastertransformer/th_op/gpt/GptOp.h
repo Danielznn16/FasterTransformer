@@ -246,6 +246,14 @@ public:
             {"input_lengths",
              ft::Tensor{
                  ft::MEMORY_GPU, ft::TYPE_INT32, std::vector<size_t>{request_batch_size}, get_ptr<int>(input_lengths)}},
+            {"input_context_lengths",
+             ft::Tensor{
+                 ft::MEMORY_GPU, ft::TYPE_INT32, std::vector<size_t>{request_batch_size}, get_ptr<int>(input_lengths)}},
+            {"input_position_ids",
+             ft::Tensor{ft::MEMORY_GPU,
+                        ft::TYPE_INT32,
+                        std::vector<size_t>{request_batch_size, max_input_length},
+                        get_ptr<int>(input_position_ids)}},
             {"input_block_position_ids",
              ft::Tensor{ft::MEMORY_GPU,
                         ft::TYPE_INT32,
