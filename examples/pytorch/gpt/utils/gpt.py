@@ -284,6 +284,8 @@ class GPT(nn.Module):
     def forward(self,
                 start_ids,
                 start_lengths,
+                start_context_lengths,
+                start_position_ids,
                 start_block_position_ids,
                 output_len,
                 beam_width=1,
@@ -307,6 +309,8 @@ class GPT(nn.Module):
         # outputs: output_ids, output_lengths, output_cum_log_probs (optional)
         outputs = self.model.forward(start_ids,
                                      start_lengths,
+                                     start_context_lengths,
+                                     start_position_ids,
                                      start_block_position_ids,
                                      output_len,
                                      beam_width,

@@ -164,9 +164,14 @@ def main():
 
     with torch.no_grad():
         # Generate tokens.
-        start_block_position_ids = torch.ones_like(start_id, dtype=start_ids.dtype, device=start_ids.device)
+        # Now Fake some ids
+        start_context_lengths = start_lengths.clone()
+        start_position_ids = torch.ones_like(start_ids, dtype=start_ids.dtype, device=start_ids.device)
+        start_block_position_ids = torch.ones_like(start_ids, dtype=start_ids.dtype, device=start_ids.device)
         tokens_batch = gpt(start_ids,
                            start_lengths,
+                           start_context_lengths,
+                           start_position_ids,
                            start_block_position_ids,
                            output_len,
                            beam_width,
@@ -205,6 +210,8 @@ def main():
             for i in range(iterations):
                 tokens_batch = gpt(start_ids,
                                    start_lengths,
+                                   start_context_lengths,
+                                   start_position_ids,
                                    start_block_position_ids,
                                    output_len,
                                    beam_width,
@@ -224,6 +231,8 @@ def main():
             for i in range(iterations):
                 tokens_batch = gpt(start_ids,
                                    start_lengths,
+                                   start_context_lengths,
+                                   start_position_ids,
                                    start_block_position_ids,
                                    output_len,
                                    beam_width,
