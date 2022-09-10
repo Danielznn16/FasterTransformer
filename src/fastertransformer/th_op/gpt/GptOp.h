@@ -30,6 +30,8 @@ public:
     virtual ~IFGpt() {}
     virtual void forward(th::Tensor& input_ids,
                          th::Tensor& input_lengths,
+                         th::Tensor& input_context_lengths,
+                         th::Tensor& input_position_ids,
                          th::Tensor& input_block_position_ids,
                          th::Tensor& output_ids,
                          th::Tensor& parent_ids,
@@ -156,6 +158,8 @@ public:
 
     void forward(th::Tensor& input_ids,
                  th::Tensor& input_lengths,
+                 th::Tensor& input_context_lengths,
+                 th::Tensor& input_position_ids,
                  th::Tensor& input_block_position_ids,
                  th::Tensor& output_ids,
                  th::Tensor& parent_ids,
@@ -358,6 +362,8 @@ public:
 
     vector<th::Tensor> forward(th::Tensor input_ids,
                                th::Tensor input_lengths,
+                               th::Tensor input_context_lengths,
+                               th::Tensor input_position_ids,
                                th::Tensor input_block_position_ids,
                                const int64_t output_len,
                                const int64_t beam_width,
