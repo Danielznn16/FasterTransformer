@@ -14,6 +14,8 @@
 # limitations under the License.
 
 from __future__ import print_function
+import examples.pytorch.gpt.utils.gpt_token_encoder as encoder
+from examples.pytorch.gpt.utils.gpt import GPT, GPTWeights
 
 from torch.nn.utils.rnn import pad_sequence
 import random
@@ -25,8 +27,6 @@ import torch
 import numpy as np
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path + "/../../..")
-from examples.pytorch.gpt.utils.gpt import GPT, GPTWeights
-import examples.pytorch.gpt.utils.gpt_token_encoder as encoder
 
 
 def main():
@@ -164,8 +164,10 @@ def main():
 
     with torch.no_grad():
         # Generate tokens.
+        start_position_ids = torch.ones_like(start_id, dtype=start_ids.dtype, device=start_ids.device)
         tokens_batch = gpt(start_ids,
                            start_lengths,
+                           start_position_ids,
                            output_len,
                            beam_width,
                            top_k,
@@ -203,6 +205,7 @@ def main():
             for i in range(iterations):
                 tokens_batch = gpt(start_ids,
                                    start_lengths,
+                                   start_position_ids,
                                    output_len,
                                    beam_width,
                                    top_k,
@@ -221,6 +224,7 @@ def main():
             for i in range(iterations):
                 tokens_batch = gpt(start_ids,
                                    start_lengths,
+                                   start_position_ids,
                                    output_len,
                                    beam_width,
                                    top_k,

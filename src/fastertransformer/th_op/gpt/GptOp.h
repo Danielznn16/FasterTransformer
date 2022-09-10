@@ -30,6 +30,7 @@ public:
     virtual ~IFGpt() {}
     virtual void forward(th::Tensor& input_ids,
                          th::Tensor& input_lengths,
+                         th::Tensor& input_position_ids,
                          th::Tensor& output_ids,
                          th::Tensor& parent_ids,
                          th::Tensor& sequence_lengths,
@@ -155,6 +156,7 @@ public:
 
     void forward(th::Tensor& input_ids,
                  th::Tensor& input_lengths,
+                 th::Tensor& input_position_ids,
                  th::Tensor& output_ids,
                  th::Tensor& parent_ids,
                  th::Tensor& sequence_lengths,
@@ -240,6 +242,11 @@ public:
             {"input_lengths",
              ft::Tensor{
                  ft::MEMORY_GPU, ft::TYPE_INT32, std::vector<size_t>{request_batch_size}, get_ptr<int>(input_lengths)}},
+            {"input_position_ids",
+             ft::Tensor{ft::MEMORY_GPU,
+                        ft::TYPE_INT32,
+                        std::vector<size_t>{request_batch_size, max_input_length},
+                        get_ptr<int>(input_position_ids)}},
             {"max_output_seq_len",
              ft::Tensor{ft::MEMORY_CPU, ft::TYPE_INT32, std::vector<size_t>{1}, &total_output_len}}};
         if (top_k == 0 && top_p == 0.0f) {
@@ -351,6 +358,7 @@ public:
 
     vector<th::Tensor> forward(th::Tensor input_ids,
                                th::Tensor input_lengths,
+                               th::Tensor input_position_ids,
                                const int64_t output_len,
                                const int64_t beam_width,
                                const int64_t top_k,

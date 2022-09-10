@@ -22,8 +22,8 @@ import torch.distributed as dist
 
 
 class GPTWeights(object):
-    def __init__(self, head_num, size_per_head, layer_num, vocab_size, max_seq_len, tensor_para_size, pipeline_para_size, int8_mode = 0):
-        assert(head_num % tensor_para_size == 0)
+    def __init__(self, head_num, size_per_head, layer_num, vocab_size, max_seq_len, tensor_para_size, pipeline_para_size, int8_mode=0):
+        assert (head_num % tensor_para_size == 0)
 
         if int8_mode != 0:
             self.weight_transpose_calibrate_quantize = torch.ops.fastertransformer.weight_transpose_calibrate_quantize
@@ -79,16 +79,18 @@ class GPTWeights(object):
         self._map(lambda w: torch.nn.init.normal_(w, mean=0., std=1.))
 
         if (self.int8_mode != 0):
-            self.int8_w.extend([torch.zeros(global_hidden_units, local_hidden_units * 3, dtype=torch.int8)] * layer_num)   # self_int8_kernel
+            self.int8_w.extend([torch.zeros(global_hidden_units, local_hidden_units *
+                               3, dtype=torch.int8)] * layer_num)   # self_int8_kernel
             self.scale.extend([torch.zeros(local_hidden_units * 3, dtype=torch.float)] * layer_num)   # self_scale
-            self.int8_w.extend([torch.zeros(local_hidden_units, global_hidden_units, dtype=torch.int8)] * layer_num)   # self_output_int8_kernel
+            self.int8_w.extend([torch.zeros(local_hidden_units, global_hidden_units, dtype=torch.int8)]
+                               * layer_num)   # self_output_int8_kernel
             self.scale.extend([torch.zeros(global_hidden_units, dtype=torch.float)] * layer_num)   # self_output_scale
-            self.int8_w.extend([torch.zeros(global_hidden_units, local_inter_size, dtype=torch.int8)] * layer_num)   # ffn_int8_kernel1
+            self.int8_w.extend([torch.zeros(global_hidden_units, local_inter_size,
+                               dtype=torch.int8)] * layer_num)   # ffn_int8_kernel1
             self.scale.extend([torch.zeros(local_inter_size, dtype=torch.float)] * layer_num)   # ffn_scale1
-            self.int8_w.extend([torch.zeros(local_inter_size, global_hidden_units, dtype=torch.int8)] * layer_num)   # ffn_int8_kernel2
+            self.int8_w.extend([torch.zeros(local_inter_size, global_hidden_units,
+                               dtype=torch.int8)] * layer_num)   # ffn_int8_kernel2
             self.scale.extend([torch.zeros(global_hidden_units, dtype=torch.float)] * layer_num)   # ffn_scale2
-
-
 
     def __getitem__(self, idx):
         return self.w[idx]
@@ -166,7 +168,8 @@ class GPTWeights(object):
         w.append(wpe)
         w.append(torch.from_numpy(np.fromfile(ckpt_path + "/model.wte.bin", dtype=np.single)))
         w.append(torch.from_numpy(np.fromfile(ckpt_path + "/model.wte.bin", dtype=np.single)))
-        w.append(torch.from_numpy(np.fromfile(ckpt_path + "/model.bpe.bin", dtype=np.single)).reshape(-1, self.global_hidden_units))
+        w.append(torch.from_numpy(np.fromfile(ckpt_path + "/model.bpe.bin",
+                 dtype=np.single)).reshape(-1, self.global_hidden_units))
         # Reshape
         try:
             for i in range(len(w)):
@@ -177,14 +180,18 @@ class GPTWeights(object):
             raise RuntimeError(
                 "head_num, size_per_head, vocab_size, and max_seq_len must be the same as the ones during training.")
 
-        #transpose calibrate quantize the kernel
+        # transpose calibrate quantize the kernel
         layer_num = self.layer_num
         if self.int8_mode != 0:
             for i in range(layer_num):
-                self.int8_w[i + 0*layer_num], self.scale[i + 0*layer_num] = self.weight_transpose_calibrate_quantize(self.w[2*layer_num + i])
-                self.int8_w[i + 1*layer_num], self.scale[i + 1*layer_num] = self.weight_transpose_calibrate_quantize(self.w[4*layer_num + i])
-                self.int8_w[i + 2*layer_num], self.scale[i + 2*layer_num] = self.weight_transpose_calibrate_quantize(self.w[8*layer_num + i])
-                self.int8_w[i + 3*layer_num], self.scale[i + 3*layer_num] = self.weight_transpose_calibrate_quantize(self.w[10*layer_num + i])
+                self.int8_w[i + 0 * layer_num], self.scale[i + 0 *
+                                                           layer_num] = self.weight_transpose_calibrate_quantize(self.w[2 * layer_num + i])
+                self.int8_w[i + 1 * layer_num], self.scale[i + 1 *
+                                                           layer_num] = self.weight_transpose_calibrate_quantize(self.w[4 * layer_num + i])
+                self.int8_w[i + 2 * layer_num], self.scale[i + 2 *
+                                                           layer_num] = self.weight_transpose_calibrate_quantize(self.w[8 * layer_num + i])
+                self.int8_w[i + 3 * layer_num], self.scale[i + 3 *
+                                                           layer_num] = self.weight_transpose_calibrate_quantize(self.w[10 * layer_num + i])
 
         return True
 
@@ -196,7 +203,7 @@ class GPT(nn.Module):
                  max_seq_len,
                  tensor_para_size, pipeline_para_size,
                  lib_path,
-				 int8_mode = 0):
+                 int8_mode=0):
         super().__init__()
         self.head_num = head_num
         self.size_per_head = size_per_head
@@ -277,6 +284,7 @@ class GPT(nn.Module):
     def forward(self,
                 start_ids,
                 start_lengths,
+                start_position_ids,
                 output_len,
                 beam_width=1,
                 top_k=1,
@@ -299,6 +307,7 @@ class GPT(nn.Module):
         # outputs: output_ids, output_lengths, output_cum_log_probs (optional)
         outputs = self.model.forward(start_ids,
                                      start_lengths,
+                                     start_position_ids,
                                      output_len,
                                      beam_width,
                                      top_k,
