@@ -82,7 +82,7 @@ GptOp::~GptOp()
 
 std::vector<th::Tensor> GptOp::forward(th::Tensor input_ids,
                                        th::Tensor input_lengths,
-                                       th::Tensor input_position_ids,
+                                       th::Tensor input_block_position_ids,
                                        const int64_t output_len,
                                        const int64_t beam_width,
                                        const int64_t top_k,
@@ -120,7 +120,7 @@ std::vector<th::Tensor> GptOp::forward(th::Tensor input_ids,
 
     ftgpt->forward(input_ids,
                    input_lengths,
-                   input_position_ids,
+                   input_block_position_ids,
                    output_ids,
                    parent_ids,
                    sequence_lengths,

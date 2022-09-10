@@ -109,7 +109,7 @@ protected:
     int* end_ids_buf_;
 
     int* tiled_input_ids_buf_;
-    int* tiled_input_position_ids_buf_;
+    int* tiled_input_block_position_ids_buf_;
     int* tiled_input_lengths_buf_;
 
     int* transposed_output_ids_buf_;
